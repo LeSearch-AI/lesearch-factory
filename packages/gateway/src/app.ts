@@ -1,4 +1,13 @@
-import { StatusRegistry, RunStore, createLogger, type Logger } from "@lesearch/core";
+import {
+  StatusRegistry,
+  RunStore,
+  createLogger,
+  Supervisor,
+  bunSpawner,
+  type Logger,
+  type Spawner,
+  type AgentRun,
+} from "@lesearch/core";
 import { type ComponentStatus } from "@lesearch/proto";
 import { EventBus } from "./events";
 
@@ -11,6 +20,8 @@ export interface AppDeps {
   /** Injectable Postgres probe so /status can be unit-tested without a DB. */
   checkPostgres?: () => Promise<ComponentStatus>;
   tunnelConfigured?: boolean;
+  /** Injectable process spawner for the supervisor (tests pass a fake). */
+  spawn?: Spawner;
 }
 
 export interface App {
@@ -28,6 +39,7 @@ export function createApp(deps: AppDeps = {}): App {
   const logger = deps.logger ?? createLogger({ component: "gateway", sink: () => {} });
   const checkPostgres = deps.checkPostgres ?? (async () => "unavailable" as ComponentStatus);
   const tunnelConfigured = deps.tunnelConfigured ?? false;
+  const supervisor = new Supervisor({ store: runs, emit: (e) => bus.publish(e), spawn: deps.spawn ?? bunSpawner(), logger });
   const startedAt = Date.now();
 
   async function fetch(req: Request): Promise<Response> {
@@ -55,7 +67,9 @@ export function createApp(deps: AppDeps = {}): App {
           controller.enqueue(encoder.encode(": connected\n\n"));
           off = bus.subscribe((e) => {
             try {
-              controller.enqueue(encoder.encode(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`));
+              // Default-message frames (no `event:` line) so EventSource.onmessage
+              // receives every event type; the client switches on `e.type`.
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(e)}\n\n`));
             } catch {
               /* stream closed */
             }
@@ -68,6 +82,20 @@ export function createApp(deps: AppDeps = {}): App {
       return new Response(stream, {
         headers: { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" },
       });
+    }
+
+    if (path === "/runs" && req.method === "POST") {
+      const body = (await req.json().catch(() => null)) as { objective?: string; agents?: AgentRun[] } | null;
+      if (!body || !Array.isArray(body.agents) || body.agents.length === 0) {
+        return Response.json({ error: "body.agents must be a non-empty array" }, { status: 400 });
+      }
+      const { run } = supervisor.start({ objective: body.objective, agents: body.agents });
+      logger.info("run accepted", { code: 0, run_id: run.run_id });
+      return Response.json({ run_id: run.run_id, run }, { status: 200 });
+    }
+
+    if (path === "/runs" && req.method === "GET") {
+      return Response.json({ runs: runs.listRuns() });
     }
 
     return new Response("not found", { status: 404 });

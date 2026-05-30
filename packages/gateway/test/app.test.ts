@@ -59,6 +59,53 @@ describe("event stream", () => {
   });
 });
 
+describe("POST /runs", () => {
+  test("starts a run, returns a run_id, and publishes run.started", async () => {
+    const fakeSpawn = () => ({ done: Promise.resolve(0) });
+    const app = createApp({ spawn: fakeSpawn });
+    const events: any[] = [];
+    app.bus.subscribe((e) => events.push(e));
+    const r = await app.fetch(
+      new Request("http://x/runs", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ objective: "demo", agents: [{ agent_id: "a1", command: "echo", args: ["hi"] }] }),
+      }),
+    );
+    expect(r.status).toBe(200);
+    const b = JSON.parse(await r.text());
+    expect(typeof b.run_id).toBe("string");
+    expect(b.run.state).toBe("running");
+    expect(events.map((e) => e.type)).toContain("run.started");
+  });
+
+  test("rejects a body with no agents", async () => {
+    const app = createApp();
+    const r = await app.fetch(
+      new Request("http://x/runs", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }),
+    );
+    expect(r.status).toBe(400);
+  });
+});
+
+describe("GET /runs", () => {
+  test("lists runs", async () => {
+    const app = createApp({ spawn: () => ({ done: Promise.resolve(0) }) });
+    await app.fetch(
+      new Request("http://x/runs", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ agents: [{ agent_id: "a1", command: "echo" }] }),
+      }),
+    );
+    const r = await app.fetch(new Request("http://x/runs"));
+    expect(r.status).toBe(200);
+    const b = JSON.parse(await r.text());
+    expect(Array.isArray(b.runs)).toBe(true);
+    expect(b.runs.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
 describe("unknown route", () => {
   test("is 404", async () => {
     const app = createApp();

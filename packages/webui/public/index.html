@@ -21,6 +21,13 @@
   .brand b{font-weight:600}
   .tag{color:var(--text-3);font-size:13px}
   .overall{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:14px;padding:7px 14px;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface-1)}
+  .btn{font-family:var(--mono);font-size:13px;background:var(--text-1);color:var(--bg);border:none;border-radius:6px;padding:8px 14px;cursor:pointer}
+  .btn:active{opacity:.85}
+  .run{background:var(--surface-1);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+  .run .rid{font-family:var(--mono);font-size:12px;color:var(--text-3);margin-bottom:8px}
+  .sess{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:12.5px;padding:3px 0}
+  .sess .nm{color:var(--text-2)}
+  .running .stt{color:var(--text-1)} .succeeded .stt{color:var(--text-1)} .failed .stt{color:var(--alert)} .pending .stt{color:var(--text-3)}
   h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);font-weight:600;margin:28px 0 14px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
   .card{background:var(--surface-1);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
@@ -50,11 +57,17 @@
       <div class="brand"><b>lesearch</b> · mission control</div>
       <div class="tag">Less Search, More Agents.</div>
     </div>
-    <div id="overall" class="overall"><span class="pulse"></span> connecting…</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="demo" class="btn">▶ start demo run</button>
+      <div id="overall" class="overall"><span class="pulse"></span> connecting…</div>
+    </div>
   </header>
 
   <h2>Components</h2>
   <div id="components" class="grid"><div class="empty">loading status…</div></div>
+
+  <h2>Runs</h2>
+  <div id="runs" class="grid"><div class="empty">no runs yet — start one ▶</div></div>
 
   <h2>Live events</h2>
   <div id="events" class="events"><div class="empty">waiting for events…</div></div>
@@ -102,11 +115,50 @@ function renderEvents(){
   ).join('');
 }
 
+// --- live runs, driven by the event stream -------------------------------
+const elRuns = document.getElementById('runs');
+const runs = new Map(); // run_id -> { sessions: Map<agent_id,state> }
+
+function ensureRun(id){ if(!runs.has(id)) runs.set(id,{sessions:new Map()}); return runs.get(id); }
+
+function renderRuns(){
+  if(!runs.size){ elRuns.innerHTML = '<div class="empty">no runs yet — start one ▶</div>'; return; }
+  elRuns.innerHTML = [...runs.entries()].reverse().map(([id,r])=>
+    '<div class="run"><div class="rid">'+id+'</div>'+
+    [...r.sessions.entries()].map(([aid,st])=>
+      '<div class="sess '+st+'"><span class="nm">'+aid+'</span><span class="stt">● '+st+'</span></div>'
+    ).join('')+'</div>'
+  ).join('');
+}
+
+function handleEvent(e){
+  events.push(e); renderEvents();
+  if(!e.run_id) return;
+  const r = ensureRun(e.run_id);
+  if(e.type==='session.started') r.sessions.set(e.agent_id,'running');
+  else if(e.type==='session.succeeded') r.sessions.set(e.agent_id,'succeeded');
+  else if(e.type==='session.failed') r.sessions.set(e.agent_id,'failed');
+  renderRuns();
+}
+
 try{
   const es = new EventSource(GW + '/events');
-  es.onmessage = (m)=>{ try{ events.push(JSON.parse(m.data)); renderEvents(); }catch{} };
-  es.addEventListener('run.started', m=>{ try{ events.push(JSON.parse(m.data)); renderEvents(); }catch{} });
+  es.onmessage = (m)=>{ try{ handleEvent(JSON.parse(m.data)); }catch{} };
 }catch(e){}
+
+// --- demo run button ------------------------------------------------------
+document.getElementById('demo').addEventListener('click', async ()=>{
+  try{
+    await fetch(GW + '/runs', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({
+      objective: 'demo run from WebUI',
+      agents: [
+        { agent_id: 'builder',  kind: 'demo', command: 'sh', args: ['-c','echo planning; sleep 1; echo building; sleep 1; echo done'] },
+        { agent_id: 'reviewer', kind: 'demo', command: 'sh', args: ['-c','echo reviewing; sleep 2; echo approved'] },
+        { agent_id: 'flaky',    kind: 'demo', command: 'sh', args: ['-c','echo trying; sleep 1; exit 1'] }
+      ]
+    })});
+  }catch(e){}
+});
 
 poll(); setInterval(poll, 2000);
 </script>

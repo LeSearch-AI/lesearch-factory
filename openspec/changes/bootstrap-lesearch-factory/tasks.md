@@ -17,7 +17,7 @@ Each group maps to one package so it can be delegated to a parallel agent agains
 - [x] 2.1 **[TODAY]** Structured logger: JSON-lines `{ts,level,component,run_id?,agent_id?,code,msg}` + pretty printer; failing test first
 - [x] 2.2 **[TODAY]** Typed component status surface + numeric code registry; test enumerates known codes
 - [x] 2.3 **[TODAY]** Run/session/task model (in-memory store + interface) with state machine (`pending|running|waiting_approval|succeeded|failed|cancelled`); failing tests for transitions
-- [ ] 2.4 **[P2]** Concurrent supervisor: launch N agent sessions as child processes, track exit codes, emit lifecycle events
+- [x] 2.4 **[P2]** Concurrent supervisor: launch N agent sessions as child processes, track exit codes, emit lifecycle events
 - [ ] 2.5 **[P2]** Approval gate: pause → emit request → resume on allow/deny, recorded as audit event
 - [ ] 2.6 **[P2]** Agent registry backed by `unified-memory` (id, kind, command, env-readiness)
 
@@ -26,13 +26,13 @@ Each group maps to one package so it can be delegated to a parallel agent agains
 - [x] 3.1 **[TODAY]** HTTP server with `GET /health` (200 + version + uptime); failing test first
 - [x] 3.2 **[TODAY]** `GET /status` aggregating component statuses from `core`; test covers a down dependency → `degraded`
 - [x] 3.3 **[TODAY]** WS/SSE event stream endpoint; test: subscribe → receive a `run.started` event
-- [ ] 3.4 **[P2]** Run control endpoints (`POST /runs`, `GET /runs/:id`, approval decisions)
+- [x] 3.4 **[P2]** Run control endpoints (`POST /runs`, `GET /runs/:id`, approval decisions)
 - [ ] 3.5 **[P2]** Serve the built WebUI as static assets
 
 ## 4. Mission-control WebUI — `packages/webui` (delegable)
 
 - [x] 4.1 **[TODAY]** Monochrome dashboard shell (design.md tokens) rendering `GET /status`; responsive
-- [ ] 4.2 **[TODAY]** Live event subscription rendering run/session/log lines
+- [x] 4.2 **[TODAY]** Live event subscription rendering run/session/log lines
 - [ ] 4.3 **[P2]** Approval cards (allow/deny → gateway)
 - [ ] 4.4 **[P2]** Terminal pane (rmux) and session detail view
 

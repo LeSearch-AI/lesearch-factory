@@ -38,20 +38,19 @@ Bun.serve({
   port: PORT,
   async fetch(req) {
     const url = new URL(req.url);
-    // API routes first
-    if (["/health", "/status", "/events"].includes(url.pathname)) {
+    // API routes first (and anything non-GET) go to the app.
+    if (["/health", "/status", "/events", "/runs"].includes(url.pathname) || req.method !== "GET") {
       return app.fetch(req);
     }
-    // Static WebUI
+    // Static WebUI (GET only)
     const rel = url.pathname === "/" ? "/index.html" : url.pathname;
     const file = join(WEB_DIR, rel);
     if (existsSync(file) && file.startsWith(WEB_DIR)) {
       return new Response(Bun.file(file));
     }
-    if (url.pathname === "/" || !existsSync(file)) {
-      const index = join(WEB_DIR, "index.html");
-      if (existsSync(index)) return new Response(Bun.file(index));
-    }
+    // SPA-style fallback to index.html for unknown GET paths.
+    const index = join(WEB_DIR, "index.html");
+    if (existsSync(index)) return new Response(Bun.file(index));
     return app.fetch(req);
   },
 });
