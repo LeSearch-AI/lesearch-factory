@@ -1,0 +1,7 @@
+{
+  "name": "@lesearch/webui",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Monochrome mission-control WebUI. Static, zero-build for the EOD spine; served by the gateway.",
+  "private": true
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@lesearch/telemetry",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@lesearch/proto": "workspace:*"
+  }
+}

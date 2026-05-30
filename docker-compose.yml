@@ -1,0 +1,48 @@
+# LeSearch — the lightweight stack. `docker compose up -d` (or `lesearch up`).
+# Core profile: postgres + gateway (serves the WebUI). Optional profiles add reach.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: lesearch
+      POSTGRES_PASSWORD: lesearch
+      POSTGRES_DB: lesearch
+    ports:
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lesearch"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  gateway:
+    build:
+      context: .
+      dockerfile: containers/gateway.Dockerfile
+    environment:
+      LESEARCH_GATEWAY_PORT: "7700"
+      LESEARCH_PG_URL: postgres://lesearch:lesearch@postgres:5432/lesearch
+      LESEARCH_WEB_DIR: /app/packages/webui/public
+      LESEARCH_VERSION: "0.0.0"
+    ports:
+      - "7700:7700"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # --- optional reach (enable with: docker compose --profile tunnel up) ---
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARED_TOKEN:-}
+    depends_on:
+      - gateway
+
+volumes:
+  pgdata:

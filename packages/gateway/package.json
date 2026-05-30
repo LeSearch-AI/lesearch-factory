@@ -1,0 +1,18 @@
+{
+  "name": "@lesearch/gateway",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Control plane: GET /health, GET /status (aggregated typed health), and the live event stream. Serves the WebUI.",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "start": "bun run src/serve.ts"
+  },
+  "dependencies": {
+    "@lesearch/proto": "workspace:*",
+    "@lesearch/core": "workspace:*"
+  }
+}

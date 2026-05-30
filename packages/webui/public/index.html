@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>lesearch · mission control</title>
+<style>
+  /* Monochrome. Contrast is the brand (design.md). Off-black on off-white, never #000/#FFF. */
+  :root {
+    --bg:#0C0C0C; --surface-1:#161616; --surface-2:#1F1F1F;
+    --border:#2A2A2A; --border-strong:#3A3A3A;
+    --text-1:#F5F4F2; --text-2:#C9C5C2; --text-3:#8A8585; --alert:#B5862A;
+    --mono:"Geist Mono","JetBrains Mono","SF Mono",ui-monospace,monospace;
+    --sans:"Inter",-apple-system,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text-1);font:15px/1.6 var(--sans);padding:32px 24px 80px}
+  .wrap{max-width:1080px;margin:0 auto}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:24px;flex-wrap:wrap}
+  .brand{font-family:var(--mono);font-size:20px;letter-spacing:-.01em}
+  .brand b{font-weight:600}
+  .tag{color:var(--text-3);font-size:13px}
+  .overall{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:14px;padding:7px 14px;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface-1)}
+  h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);font-weight:600;margin:28px 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .card{background:var(--surface-1);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+  .card .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .name{font-family:var(--mono);font-size:14px;color:var(--text-1)}
+  .st{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--text-2)}
+  .dot{width:8px;height:8px;border-radius:99px;display:inline-block;background:var(--text-3)}
+  .ok .dot{background:var(--text-1)} .ok .st{color:var(--text-1)}
+  .degraded .dot,.unavailable .dot,.unknown .dot{background:var(--alert)} .degraded .st,.unavailable .st,.unknown .st{color:var(--alert)}
+  .not_configured .dot{background:transparent;border:1px solid var(--border-strong)} .not_configured .st{color:var(--text-3)}
+  .code{color:var(--text-3);font-family:var(--mono);font-size:11px;margin-top:6px}
+  .hint{color:var(--text-3);font-size:12px;margin-top:6px}
+  .events{background:var(--surface-1);border:1px solid var(--border);border-radius:8px;padding:0;overflow:hidden}
+  .events .line{font-family:var(--mono);font-size:12.5px;color:var(--text-2);padding:8px 14px;border-top:1px solid var(--border);display:flex;gap:12px}
+  .events .line:first-child{border-top:none}
+  .events .t{color:var(--text-3)} .events .ev{color:var(--text-1)}
+  .empty{color:var(--text-3);font-family:var(--mono);font-size:12.5px;padding:14px}
+  footer{margin-top:36px;color:var(--text-3);font-size:12px;font-family:var(--mono)}
+  .pulse{width:7px;height:7px;border-radius:99px;background:var(--text-1);display:inline-block;animation:p 2s infinite}
+  @keyframes p{0%,100%{opacity:.35}50%{opacity:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand"><b>lesearch</b> · mission control</div>
+      <div class="tag">Less Search, More Agents.</div>
+    </div>
+    <div id="overall" class="overall"><span class="pulse"></span> connecting…</div>
+  </header>
+
+  <h2>Components</h2>
+  <div id="components" class="grid"><div class="empty">loading status…</div></div>
+
+  <h2>Live events</h2>
+  <div id="events" class="events"><div class="empty">waiting for events…</div></div>
+
+  <footer id="foot">gateway: <span id="gw">—</span></footer>
+</div>
+
+<script>
+const GW = location.origin;
+const elComp = document.getElementById('components');
+const elOverall = document.getElementById('overall');
+const elEvents = document.getElementById('events');
+const events = [];
+
+function dot(){ return '<span class="dot"></span>'; }
+
+async function poll(){
+  try{
+    const r = await fetch(GW + '/status', {cache:'no-store'});
+    const b = await r.json();
+    elOverall.className = 'overall ' + b.overall;
+    elOverall.innerHTML = dot() + '<span class="st">overall: ' + b.overall + '</span>';
+    elComp.innerHTML = b.components.map(c =>
+      '<div class="card ' + c.status + '">' +
+        '<div class="row"><span class="name">' + c.component + '</span>' +
+        '<span class="st">' + dot() + c.status + '</span></div>' +
+        '<div class="code">code ' + c.code + '</div>' +
+        (c.hint ? '<div class="hint">' + c.hint + '</div>' : '') +
+      '</div>'
+    ).join('');
+    document.getElementById('gw').textContent = GW + ' · ok';
+  }catch(e){
+    elOverall.className = 'overall unavailable';
+    elOverall.innerHTML = dot() + '<span class="st">overall: unreachable</span>';
+    document.getElementById('gw').textContent = GW + ' · unreachable';
+  }
+}
+
+function renderEvents(){
+  if(!events.length){ elEvents.innerHTML = '<div class="empty">waiting for events…</div>'; return; }
+  elEvents.innerHTML = events.slice(-40).reverse().map(e =>
+    '<div class="line"><span class="t">' + (e.ts||'').replace('T',' ').replace('Z','') + '</span>' +
+    '<span class="ev">' + e.type + '</span>' +
+    '<span>' + (e.run_id||'') + (e.agent_id? ' / '+e.agent_id : '') + '</span></div>'
+  ).join('');
+}
+
+try{
+  const es = new EventSource(GW + '/events');
+  es.onmessage = (m)=>{ try{ events.push(JSON.parse(m.data)); renderEvents(); }catch{} };
+  es.addEventListener('run.started', m=>{ try{ events.push(JSON.parse(m.data)); renderEvents(); }catch{} });
+}catch(e){}
+
+poll(); setInterval(poll, 2000);
+</script>
+</body>
+</html>

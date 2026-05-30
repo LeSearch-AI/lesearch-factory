@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+.git
+dist
+**/dist
+*.gguf
+data
+.lesearch
+coverage
+openspec/changes/archive

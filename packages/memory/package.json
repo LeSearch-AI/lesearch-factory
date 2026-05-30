@@ -1,0 +1,14 @@
+{
+  "name": "@lesearch/memory",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/client.ts",
+  "module": "src/client.ts",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@lesearch/proto": "workspace:*"
+  }
+}

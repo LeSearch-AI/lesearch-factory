@@ -5,6 +5,45 @@
     "": {
       "name": "lesearch",
     },
+    "packages/cli": {
+      "name": "@lesearch/cli",
+      "version": "0.0.0",
+      "bin": {
+        "lesearch": "src/index.ts",
+      },
+      "dependencies": {
+        "@lesearch/proto": "workspace:*",
+      },
+    },
+    "packages/core": {
+      "name": "@lesearch/core",
+      "version": "0.0.0",
+      "dependencies": {
+        "@lesearch/proto": "workspace:*",
+      },
+    },
+    "packages/gateway": {
+      "name": "@lesearch/gateway",
+      "version": "0.0.0",
+      "dependencies": {
+        "@lesearch/core": "workspace:*",
+        "@lesearch/proto": "workspace:*",
+      },
+    },
+    "packages/inference": {
+      "name": "@lesearch/inference",
+      "version": "0.0.0",
+      "dependencies": {
+        "@lesearch/proto": "workspace:*",
+      },
+    },
+    "packages/memory": {
+      "name": "@lesearch/memory",
+      "version": "0.0.0",
+      "dependencies": {
+        "@lesearch/proto": "workspace:*",
+      },
+    },
     "packages/proto": {
       "name": "@lesearch/proto",
       "version": "0.0.0",
@@ -12,9 +51,34 @@
         "zod": "^3.23.8",
       },
     },
+    "packages/telemetry": {
+      "name": "@lesearch/telemetry",
+      "version": "0.0.0",
+      "dependencies": {
+        "@lesearch/proto": "workspace:*",
+      },
+    },
+    "packages/webui": {
+      "name": "@lesearch/webui",
+      "version": "0.0.0",
+    },
   },
   "packages": {
+    "@lesearch/cli": ["@lesearch/cli@workspace:packages/cli"],
+
+    "@lesearch/core": ["@lesearch/core@workspace:packages/core"],
+
+    "@lesearch/gateway": ["@lesearch/gateway@workspace:packages/gateway"],
+
+    "@lesearch/inference": ["@lesearch/inference@workspace:packages/inference"],
+
+    "@lesearch/memory": ["@lesearch/memory@workspace:packages/memory"],
+
     "@lesearch/proto": ["@lesearch/proto@workspace:packages/proto"],
+
+    "@lesearch/telemetry": ["@lesearch/telemetry@workspace:packages/telemetry"],
+
+    "@lesearch/webui": ["@lesearch/webui@workspace:packages/webui"],
 
     "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
   }

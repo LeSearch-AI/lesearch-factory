@@ -1,0 +1,16 @@
+{
+  "name": "@lesearch/core",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Orchestrator core: structured logger, component status registry, run/session/task model.",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@lesearch/proto": "workspace:*"
+  }
+}

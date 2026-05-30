@@ -1,0 +1,17 @@
+{
+  "name": "@lesearch/inference",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Inference backends: swappable CPU-first adapters for ollama today and llama.cpp in phase 2.",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@lesearch/proto": "workspace:*"
+  }
+}
