@@ -5,7 +5,7 @@
 # run in Docker via `lesearch up`.
 set -eu
 
-REPO_URL="${LESEARCH_REPO_URL:-https://github.com/LeSearch-AI/lesearch.git}"
+REPO_URL="${LESEARCH_REPO_URL:-https://github.com/LeSearch-AI/lesearch-factory.git}"
 APP_DIR="${LESEARCH_APP_DIR:-$HOME/.lesearch/app}"
 
 # --- platform detection ---------------------------------------------------
