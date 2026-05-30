@@ -1,0 +1,45 @@
+schema: spec-driven
+
+context: |
+  Product: LeSearch — "Less Search, More Agents."
+  A personal software factory: one curl install, one `docker compose up`, and a
+  developer has a local multi-agent orchestration platform with a mission-control
+  WebUI, reachable from any device. Personal/self-hosted first; an enterprise
+  Kubernetes packaging is a later, separate track (do not build it now).
+
+  Positioning: agents (Claude Code, Codex, Gemini CLI, OpenCode, Amp, OpenClaw,
+  Hermes, etc.) keep shipping with overlapping tools but no shared home. LeSearch
+  is that home — the control plane that runs, watches, gates, and remembers them.
+
+  Hard requirements:
+  - Lightweight. Containers, not VMs. gVisor optional, never required.
+  - Cross-OS (macOS + Linux), cross-device (phone/tablet via cloudflared tunnel).
+  - One Postgres (pgvector) holds memory, skills, hooks, rules — no Redis/Qdrant.
+  - Modular CPU inference library for GGUF models (llama.cpp / ollama adapters).
+  - Every package: structured logs + explicit status codes so agents can
+    introspect "what we have and what we don't."
+  - Single install + single uninstall curl command. Uninstall is first-class.
+  - Anonymous, opt-in usage analytics (PostHog) to learn what works.
+
+  Tech stack:
+  - TypeScript: core orchestrator, gateway API, WebUI, CLI, shared proto/schemas.
+  - Rust: hot-path/wire components (egress proxy, policy engine) — phase 2.
+  - Python: agent tooling, ML, nl2shell — phase 2.
+  - Go: only if cel-go is adopted for policy. Not by default.
+  - Package managers: bun/pnpm (TS), cargo (Rust), brew (optional host installs).
+
+  Conventions:
+  - Versioned JSON Schemas in schemas/ as the cross-language contract
+    (lesearch.<domain>.vN.schema.json). TS validates via zod/json-schema.
+  - One skills/ dir symlinked into .claude/.codex/.gemini for agent tools.
+  - justfile is the unified command surface (smoke, test, up, doctor, cut-release).
+  - Design system is monochrome: off-black/off-white, contrast is the brand, no hue.
+  - Test-driven: write the failing test first, then the minimal implementation.
+
+rules:
+  proposal:
+    - Keep proposals tight and decision-oriented; include a Non-goals section.
+    - Always distinguish what ships today (EOD MVP) from what is spec-only.
+  tasks:
+    - Group tasks by package so they can be delegated to parallel agents.
+    - Each task must be independently verifiable (a test, a command, a status code).

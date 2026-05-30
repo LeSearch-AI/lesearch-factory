@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.*
+*.pem
+auth.json
+service-account*.json
+.DS_Store
+target/
+*.gguf
+data/
+.lesearch/
+coverage/

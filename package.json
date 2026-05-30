@@ -1,0 +1,17 @@
+{
+  "name": "lesearch",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LeSearch — Less Search, More Agents. A personal software factory for running, watching, gating, and remembering AI coding agents.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc -b"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}

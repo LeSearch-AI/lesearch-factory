@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lesearch.ai/schemas/lesearch.memory.v1.schema.json",
+  "title": "LeSearch Memory v1",
+  "description": "A memory row. kind distinguishes short-term working memory from long-term semantic memory.",
+  "type": "object",
+  "required": ["id", "kind", "run_id", "agent_id", "content", "created_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "kind": { "type": "string", "enum": ["working", "long_term", "episode", "summary"] },
+    "run_id": { "type": "string" },
+    "agent_id": { "type": "string" },
+    "content": { "type": "string" },
+    "embedding": {
+      "type": ["array", "null"],
+      "items": { "type": "number" },
+      "description": "Present for long_term/summary rows; null for working memory."
+    },
+    "ttl_s": { "type": ["integer", "null"], "description": "Working-memory TTL in seconds." },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

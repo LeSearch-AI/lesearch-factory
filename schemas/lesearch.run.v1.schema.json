@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lesearch.ai/schemas/lesearch.run.v1.schema.json",
+  "title": "LeSearch Run v1",
+  "description": "A run (top-level objective) containing sessions (one per agent instance) containing tasks.",
+  "type": "object",
+  "required": ["run_id", "state", "created_at", "sessions"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "objective": { "type": "string" },
+    "state": { "$ref": "#/$defs/state" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agent_id", "state"],
+        "properties": {
+          "agent_id": { "type": "string" },
+          "kind": { "type": "string", "description": "claude-code | codex | gemini-cli | ..." },
+          "state": { "$ref": "#/$defs/state" },
+          "exit_code": { "type": ["integer", "null"] },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["task_id", "state"],
+              "properties": {
+                "task_id": { "type": "string" },
+                "title": { "type": "string" },
+                "state": { "$ref": "#/$defs/state" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "state": {
+      "type": "string",
+      "enum": ["pending", "running", "waiting_approval", "succeeded", "failed", "cancelled"]
+    }
+  },
+  "additionalProperties": true
+}

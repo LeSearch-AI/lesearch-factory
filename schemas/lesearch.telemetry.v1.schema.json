@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lesearch.ai/schemas/lesearch.telemetry.v1.schema.json",
+  "title": "LeSearch Telemetry Event v1",
+  "description": "An anonymous usage event. MUST NOT contain code, prompts, file contents, or secrets.",
+  "type": "object",
+  "required": ["install_id", "event", "ts"],
+  "properties": {
+    "install_id": { "type": "string", "description": "Anonymous, per-install UUID. Not tied to identity." },
+    "event": { "type": "string", "description": "Allowlisted event name, e.g. stack.up, agent.run, doctor.fail." },
+    "ts": { "type": "string", "format": "date-time" },
+    "lesearch_version": { "type": "string" },
+    "properties": {
+      "type": "object",
+      "description": "Non-sensitive scalar properties only.",
+      "additionalProperties": { "type": ["string", "number", "boolean", "null"] }
+    }
+  },
+  "additionalProperties": false
+}

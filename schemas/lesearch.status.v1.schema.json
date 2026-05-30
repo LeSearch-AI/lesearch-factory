@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lesearch.ai/schemas/lesearch.status.v1.schema.json",
+  "title": "LeSearch Component Status v1",
+  "description": "A single component's typed health report. The 'what we have / what we don't' surface.",
+  "type": "object",
+  "required": ["component", "status", "code", "ts"],
+  "properties": {
+    "component": { "type": "string", "description": "Component id, e.g. postgres, gateway, inference, tunnel, agent:<id>" },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "degraded", "unavailable", "not_configured", "unknown"]
+    },
+    "code": { "type": "integer", "description": "Numeric status code; 0 == ok." },
+    "ts": { "type": "string", "format": "date-time" },
+    "detail": { "type": "string" },
+    "hint": { "type": "string", "description": "Remediation hint when not ok." }
+  },
+  "additionalProperties": true
+}
